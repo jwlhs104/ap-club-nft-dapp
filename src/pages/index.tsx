@@ -84,6 +84,19 @@ export const StyledLink = styled.a`
   font-weight: bold;
 `;
 
+const formatTime = (time: number) => {
+  const totalSeconds = Math.floor(time / 1000);
+  const seconds = totalSeconds % 60;
+  const minutes = Math.floor((totalSeconds / 60) % 60);
+  const hours = Math.floor(totalSeconds / 3600);
+
+  return {
+    seconds,
+    minutes,
+    hours,
+  };
+};
+
 const MintPage: NextPage = () => {
   const {
     state,
@@ -174,9 +187,9 @@ const MintPage: NextPage = () => {
 
   useEffect(() => {
     if (blockchainState.account) {
-      fetchData?.()
+      fetchData?.();
     }
-  },[blockchainState.account, fetchData])
+  }, [blockchainState.account, fetchData]);
 
   useEffect(() => {
     if (blockchainState.account) {
@@ -218,6 +231,39 @@ const MintPage: NextPage = () => {
       : 1366;
   const isMobile = screenWidth < 992;
   const displayCost = (state.cost / 10 ** 18).toString();
+
+  const [timeCountDown, setTimeCountDown] = useState(1000000);
+  useEffect(() => {
+    const now = new Date().getTime();
+    let timer: number | null;
+    if (state.startTime > now) {
+      timer = window.setInterval(() => {
+        setTimeCountDown(state.startTime - new Date().getTime());
+      }, 1000);
+    } else if (state.endTime > now) {
+      timer = window.setInterval(() => {
+        setTimeCountDown(new Date().getTime() - state.endTime);
+      }, 1000);
+    } else {
+      fetchData?.();
+    }
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [fetchData, state.endTime, state.startTime]);
+
+  useEffect(() => {
+    let timer: number | null;
+    timer = window.setTimeout(() => {
+      fetchData?.();
+    }, 1000);
+
+    return clearTimeout(timer);
+  }, [fetchData]);
+
+  const formattedTimeCountdown = formatTime(timeCountDown);
 
   return (
     <s.Screen>
@@ -318,7 +364,10 @@ const MintPage: NextPage = () => {
                   <span
                     style={{ textAlign: "center", color: "var(--color-text)" }}
                   >
-                    {state.totalSupply < 0 ? "?" : state.totalSupply} /
+                    {state.totalSupply < 0
+                      ? "?"
+                      : state.maxSupply - state.totalSupply}{" "}
+                    /
                   </span>{" "}
                   {state.maxSupply || CONFIG.MAX_SUPPLY}
                 </s.TextDescription>
@@ -345,7 +394,13 @@ const MintPage: NextPage = () => {
                       {state.loading
                         ? "Loading"
                         : state.locked
-                        ? "Coming Soon"
+                        ? `Coming Soon ${formattedTimeCountdown.hours
+                            .toString()
+                            .padStart(2, "0")}:${formattedTimeCountdown.minutes
+                            .toString()
+                            .padStart(2, "0")}:${formattedTimeCountdown.seconds
+                            .toString()
+                            .padStart(2, "0")}`
                         : "Connect Wallet"}
                     </StyledButton>
                     {blockchainState.errorMsg !== "" ? (

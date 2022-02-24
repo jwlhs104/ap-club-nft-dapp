@@ -1,8 +1,39 @@
 import React, { useCallback, useContext, useReducer } from "react";
 import { Contract } from "web3-eth-contract";
+import ethUtil from "ethereumjs-util";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { provider } from "web3-core";
 import Web3 from "web3";
+
+const saleConfigs = [
+  {
+    tierIndex: 1,
+    startTime: 1645756200,
+    endTime: 1645756800,
+    stageBatchSize: 1,
+    stageLimit: 10,
+    price: Web3.utils.toWei("0.5", "ether"),
+    stage: 0,
+  },
+  {
+    tierIndex: 2,
+    startTime: 1645756800,
+    endTime: 1645757400,
+    stageBatchSize: 1,
+    stageLimit: 70,
+    price: Web3.utils.toWei("0.8", "ether"),
+    stage: 0,
+  },
+  {
+    tierIndex: 1,
+    startTime: 1645757400,
+    endTime: 1645759200,
+    stageBatchSize: 1,
+    stageLimit: 80,
+    price: Web3.utils.toWei("3", "ether"),
+    stage: 1,
+  },
+];
 
 declare global {
   interface Window {
@@ -17,6 +48,8 @@ type DataProps = {
   maxMintAmount: number;
   totalSupply: number;
   maxSupply: number;
+  startTime: number;
+  endTime: number;
   cost: number;
   isWhitelisted: boolean;
   error: boolean;
@@ -56,6 +89,8 @@ const initialDataState = {
   maxMintAmount: 1,
   totalSupply: -1,
   maxSupply: 0,
+  startTime: 0,
+  endTime: 0,
   cost: 0,
   isWhitelisted: false,
   error: false,
@@ -108,18 +143,20 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
         const {
           currentSaleIndex,
           maxMintAmount,
+          startTime,
+          endTime,
           totalSupply,
           maxSupply,
-          locked,
           cost,
         } = action.payload;
 
         if (
-          currentSaleIndex &&
+          typeof currentSaleIndex !== "undefined" &&
+          typeof totalSupply !== "undefined" &&
+          startTime &&
+          endTime &&
           maxMintAmount &&
-          totalSupply &&
           maxSupply &&
-          locked &&
           cost
         ) {
           return {
@@ -129,7 +166,8 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
             maxMintAmount,
             totalSupply,
             maxSupply,
-            locked,
+            startTime,
+            endTime,
             cost,
             error: false,
             errorMsg: "",
@@ -251,32 +289,38 @@ const DataContextProvider: React.FC = ({ children }) => {
   const fetchData = useCallback(async () => {
     fetchDataRequest();
     try {
-      const [
-        totalSupply,
-        cost,
-        maxSupply,
-        maxMintAmount,
-        currentSaleIndex,
-      ] = await Promise.all([
-        blockchainState?.smartContract?.methods.totalSupply().call(),
-        blockchainState?.smartContract?.methods.cost().call(),
-        blockchainState?.smartContract?.methods.maxSupply().call(),
-        blockchainState?.smartContract?.methods.maxMintAmount().call(),
-        blockchainState?.smartContract?.methods.currentSaleIndex().call(),
-      ]);
+      if (blockchainState?.smartContract) {
+        const [totalSupply, currentSaleIndex] = await Promise.all([
+          blockchainState?.smartContract?.methods.totalSupply().call(),
+          blockchainState?.smartContract?.methods.currentSaleIndex().call(),
+        ]);
 
-      fetchDataSuccess({
-        maxSupply: parseInt(maxSupply),
-        totalSupply: parseInt(totalSupply),
-        cost: parseInt(cost),
-        maxMintAmount: parseInt(maxMintAmount),
-        currentSaleIndex: parseInt(currentSaleIndex),
-      });
+        const now = new Date().getTime() / 1000;
+        const saleConfig =
+          now < saleConfigs[0].startTime
+            ? saleConfigs[0]
+            : now > saleConfigs[saleConfigs.length - 1].endTime
+            ? saleConfigs[saleConfigs.length - 1]
+            : saleConfigs.find(
+                (saleConfig) =>
+                  saleConfig.startTime <= now && saleConfig.endTime >= now
+              ) ?? saleConfigs[parseInt(currentSaleIndex)];
+
+        fetchDataSuccess({
+          maxSupply: saleConfig.stageLimit,
+          totalSupply: parseInt(totalSupply),
+          startTime: saleConfig.startTime * 1000,
+          endTime: saleConfig.endTime * 1000,
+          cost: parseInt(saleConfig.price),
+          maxMintAmount: saleConfig.stageBatchSize,
+          currentSaleIndex: parseInt(currentSaleIndex),
+        });
+      }
     } catch (err) {
       console.log(err);
       fetchDataFailed("Could not load data from contract.");
     }
-  }, [blockchainState?.smartContract?.methods]);
+  }, [blockchainState?.smartContract]);
 
   const connectRequest = () => {
     blockchainDispatch({ type: "CONNECTION_REQUEST" });

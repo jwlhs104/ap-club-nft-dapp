@@ -172,19 +172,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "burn",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "currentSaleIndex",
     "outputs": [
@@ -250,11 +237,65 @@
             "internalType": "uint64",
             "name": "startTimestamp",
             "type": "uint64"
+          },
+          {
+            "internalType": "bool",
+            "name": "burned",
+            "type": "bool"
           }
         ],
         "internalType": "struct ERC721A.TokenOwnership",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "saleIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "getStageSaleConfig",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum NFTContract.SaleStage",
+        "name": "",
+        "type": "uint8"
       }
     ],
     "stateMutability": "view",
@@ -271,6 +312,11 @@
         "internalType": "uint256",
         "name": "collectionSize_",
         "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_signerAddress",
+        "type": "address"
       }
     ],
     "name": "initialize",
@@ -305,33 +351,9 @@
   {
     "inputs": [
       {
-        "internalType": "enum NFTContract.SaleStage",
-        "name": "_stage",
-        "type": "uint8"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_tierIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "isSaleStageOn",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes",
+        "internalType": "string",
         "name": "ticket",
-        "type": "bytes"
+        "type": "string"
       },
       {
         "internalType": "bytes",
@@ -376,19 +398,6 @@
         "internalType": "string",
         "name": "",
         "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "nextOwnerToExplicitlySet",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -538,6 +547,11 @@
       },
       {
         "internalType": "uint32",
+        "name": "endTime",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
         "name": "stageBatchSize",
         "type": "uint32"
       },
@@ -609,24 +623,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint64",
-        "name": "startPrice",
-        "type": "uint64"
-      },
-      {
-        "internalType": "uint64",
-        "name": "endPrice",
-        "type": "uint64"
-      }
-    ],
-    "name": "setAuctionPrice",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "string",
         "name": "baseURI",
         "type": "string"
@@ -680,19 +676,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "quantity",
-        "type": "uint256"
-      }
-    ],
-    "name": "setOwnersExplicit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
         "name": "_saleIndex",
         "type": "uint256"
       },
@@ -704,6 +687,11 @@
       {
         "internalType": "uint32",
         "name": "_startTime",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "_endTime",
         "type": "uint32"
       },
       {
@@ -879,13 +867,13 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_mintAmount",
+        "name": "quantity",
         "type": "uint256"
       },
       {
-        "internalType": "bytes",
+        "internalType": "string",
         "name": "_ticket",
-        "type": "bytes"
+        "type": "string"
       },
       {
         "internalType": "bytes",

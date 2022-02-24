@@ -253,14 +253,12 @@ const DataContextProvider: React.FC = ({ children }) => {
     try {
       const [
         totalSupply,
-        locked,
         cost,
         maxSupply,
         maxMintAmount,
         currentSaleIndex,
       ] = await Promise.all([
         blockchainState?.smartContract?.methods.totalSupply().call(),
-        blockchainState?.smartContract?.methods.locked().call(),
         blockchainState?.smartContract?.methods.cost().call(),
         blockchainState?.smartContract?.methods.maxSupply().call(),
         blockchainState?.smartContract?.methods.maxMintAmount().call(),
@@ -270,7 +268,6 @@ const DataContextProvider: React.FC = ({ children }) => {
       fetchDataSuccess({
         maxSupply: parseInt(maxSupply),
         totalSupply: parseInt(totalSupply),
-        locked,
         cost: parseInt(cost),
         maxMintAmount: parseInt(maxMintAmount),
         currentSaleIndex: parseInt(currentSaleIndex),

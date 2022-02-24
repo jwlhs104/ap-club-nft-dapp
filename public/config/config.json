@@ -1,0 +1,19 @@
+{
+  "CONTRACT_ADDRESS": "0x2bEb4049Ef61359FDeA90A532759DCdF7b256C68",
+  "SCAN_LINK": "https://etherscan.io/address/0x2bEb4049Ef61359FDeA90A532759DCdF7b256C68",
+  "NETWORK": {
+    "NAME": "Ethereum Testnet",
+    "SYMBOL": "ETH",
+    "ID": 4
+  },
+  "NFT_NAME": "TEST NFT",
+  "SYMBOL": "TST",
+  "MAX_SUPPLY": 10000,
+  "WEI_COST": 1000000000000000000,
+  "DISPLAY_COST": 1,
+  "GAS_LIMIT": 285000,
+  "MARKETPLACE": "",
+  "MARKETPLACE_LINK": "",
+  "SHOW_BACKGROUND": true,
+  "ENABLE_MINT": true
+}

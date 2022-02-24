@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import * as s from "../styles/globalStyles";
 import styled from "styled-components";
 import { useDataContext } from "../contexts/DataContext";
+import axios from "axios";
 
 export const StyledButton = styled.button`
   padding: 50px;
@@ -130,7 +131,7 @@ const MintPage: NextPage = () => {
     ENABLE_MINT: false,
   });
 
-  const claimNFTs = () => {
+  const claimNFTs = async () => {
     let cost = state.cost || CONFIG.WEI_COST;
     let gasLimit = CONFIG.GAS_LIMIT;
     let totalCostWei = String(cost * mintAmount);
@@ -140,30 +141,59 @@ const MintPage: NextPage = () => {
     setFeedback(`Minting your ${CONFIG.NFT_NAME}...`);
     setClaimingNft(true);
 
-    blockchainState?.smartContract?.methods
-      .mint(mintAmount)
-      .send({
-        gasLimit: String(totalGasLimit),
-        to: CONFIG.CONTRACT_ADDRESS,
-        from: blockchainState.account,
-        value: totalCostWei,
-      })
-      .once("error", (err: any) => {
+    if (blockchainState?.smartContract?.methods) {
+      let receipt;
+
+      try {
+        if (state.stage === 0) {
+          const { origin } = window;
+          const { data } = await axios.post(`${origin}/api/generate-ticket`, {
+            address: blockchainState.account,
+          });
+          const { ticket, signature } = data;
+          receipt = await blockchainState?.smartContract?.methods
+            .whitelistMint(mintAmount, ticket, signature)
+            .send({
+              gasLimit: String(totalGasLimit),
+              to: CONFIG.CONTRACT_ADDRESS,
+              from: blockchainState.account,
+              value: totalCostWei,
+            });
+        } else if (state.stage == 1) {
+          receipt = await blockchainState?.smartContract?.methods
+            .auctionMint(mintAmount)
+            .send({
+              gasLimit: String(totalGasLimit),
+              to: CONFIG.CONTRACT_ADDRESS,
+              from: blockchainState.account,
+              value: totalCostWei,
+            });
+        } else {
+          receipt = await blockchainState?.smartContract?.methods
+            .publicSaleMint(mintAmount)
+            .send({
+              gasLimit: String(totalGasLimit),
+              to: CONFIG.CONTRACT_ADDRESS,
+              from: blockchainState.account,
+              value: totalCostWei,
+            });
+        }
+      } catch (err: any) {
         console.log(err);
         setFeedback("Sorry, something went wrong please try again later.");
         setClaimingNft(false);
-      })
-      .then((receipt: string) => {
-        console.log(receipt);
-        setFeedback(
-          `WOW, the ${CONFIG.NFT_NAME} is yours! go visit Opensea.io to view it.`
-        );
-        if (blockchainState.account) {
-          fetchIsWhitelisted?.(blockchainState.account);
-          fetchData?.();
-        }
-        setClaimingNft(false);
-      });
+      }
+
+      console.log(receipt);
+      setFeedback(
+        `WOW, the ${CONFIG.NFT_NAME} is yours! go visit Opensea.io to view it.`
+      );
+      if (blockchainState.account) {
+        fetchIsWhitelisted?.(blockchainState.account);
+        fetchData?.();
+      }
+      setClaimingNft(false);
+    }
   };
 
   useEffect(() => {
@@ -233,14 +263,17 @@ const MintPage: NextPage = () => {
   const displayCost = (state.cost / 10 ** 18).toString();
 
   const [timeCountDown, setTimeCountDown] = useState(1000000);
+  const [locked, setLocked] = useState(false);
   useEffect(() => {
     const now = new Date().getTime();
     let timer: number | null;
     if (state.startTime > now) {
+      setLocked(true)
       timer = window.setInterval(() => {
         setTimeCountDown(state.startTime - new Date().getTime());
       }, 1000);
     } else if (state.endTime > now) {
+      setLocked(false);
       timer = window.setInterval(() => {
         setTimeCountDown(new Date().getTime() - state.endTime);
       }, 1000);
@@ -383,9 +416,9 @@ const MintPage: NextPage = () => {
                     ></s.TextDescription>
                     <s.SpacerSmall />
                     <StyledButton
-                      disabled={state.locked}
+                      disabled={locked}
                       onClick={(e) => {
-                        if (!state.locked) {
+                        if (!locked) {
                           e.preventDefault();
                           requestAccount?.();
                         }
@@ -393,7 +426,7 @@ const MintPage: NextPage = () => {
                     >
                       {state.loading
                         ? "Loading"
-                        : state.locked
+                        : locked
                         ? `Coming Soon ${formattedTimeCountdown.hours
                             .toString()
                             .padStart(2, "0")}:${formattedTimeCountdown.minutes

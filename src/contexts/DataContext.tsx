@@ -4,6 +4,7 @@ import ethUtil from "ethereumjs-util";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { provider } from "web3-core";
 import Web3 from "web3";
+import axios from "axios";
 
 const saleConfigs = [
   {
@@ -51,6 +52,7 @@ type DataProps = {
   startTime: number;
   endTime: number;
   cost: number;
+  stage: number;
   isWhitelisted: boolean;
   error: boolean;
   errorMsg: string;
@@ -92,6 +94,7 @@ const initialDataState = {
   startTime: 0,
   endTime: 0,
   cost: 0,
+  stage: 0,
   isWhitelisted: false,
   error: false,
   errorMsg: "",
@@ -148,11 +151,13 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
           totalSupply,
           maxSupply,
           cost,
+          stage,
         } = action.payload;
 
         if (
           typeof currentSaleIndex !== "undefined" &&
           typeof totalSupply !== "undefined" &&
+          typeof stage !== "undefined" &&
           startTime &&
           endTime &&
           maxMintAmount &&
@@ -266,25 +271,23 @@ const DataContextProvider: React.FC = ({ children }) => {
     dispatch({ type: "CHECK_DATA_FAILED", payload: { errorMsg } });
   };
   const fetchWhitelisted = (isWhitelisted: boolean) => {
-    dispatch({ type: "CHECK_DATA_FAILED", payload: { isWhitelisted } });
+    dispatch({ type: "FETCH_WHITELISTED", payload: { isWhitelisted } });
   };
 
-  const fetchIsWhitelisted = useCallback(
-    async (account: string) => {
-      try {
-        const whitelistCount = await blockchainState.smartContract?.methods
-          ?.whitelistedUsers(account)
-          .call();
-        const isWhitelisted = whitelistCount > 0;
+  const fetchIsWhitelisted = useCallback(async (account: string) => {
+    try {
+      const { origin } = window;
+      const { data } = await axios.post(`${origin}/api/whitelisted`, {
+        address: account,
+      });
+      const isWhitelisted = data.isWhitelisted;
 
-        fetchWhitelisted(isWhitelisted);
-      } catch (err) {
-        console.log(err);
-        fetchDataFailed("Could not load data from contract.");
-      }
-    },
-    [blockchainState.smartContract?.methods]
-  );
+      fetchWhitelisted(isWhitelisted);
+    } catch (err) {
+      console.log(err);
+      fetchDataFailed("Could not load data from contract.");
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     fetchDataRequest();
@@ -312,6 +315,7 @@ const DataContextProvider: React.FC = ({ children }) => {
           startTime: saleConfig.startTime * 1000,
           endTime: saleConfig.endTime * 1000,
           cost: parseInt(saleConfig.price),
+          stage: saleConfig.stage,
           maxMintAmount: saleConfig.stageBatchSize,
           currentSaleIndex: parseInt(currentSaleIndex),
         });

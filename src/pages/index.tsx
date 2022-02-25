@@ -253,12 +253,22 @@ const MintPage: NextPage = () => {
     if (state.startTime > now) {
       setLocked(true);
       timer = window.setInterval(() => {
-        setTimeCountDown(state.startTime - new Date().getTime());
+        const timeDelta = state.startTime - new Date().getTime();
+        if (timeDelta >= 0) {
+          setTimeCountDown(timeDelta);
+        } else {
+          refetchData?.();
+        }
       }, 1000);
     } else if (state.endTime > now) {
       setLocked(false);
       timer = window.setInterval(() => {
-        setTimeCountDown(state.endTime - new Date().getTime());
+        const timeDelta = state.endTime - new Date().getTime();
+        if (timeDelta >= 0) {
+          setTimeCountDown(timeDelta);
+        } else {
+          refetchData?.();
+        }
       }, 1000);
     }
     return () => {
@@ -266,7 +276,7 @@ const MintPage: NextPage = () => {
         clearInterval(timer);
       }
     };
-  }, [state.endTime, state.startTime]);
+  }, [refetchData, state.endTime, state.startTime]);
 
   useEffect(() => {
     let timer: number | null;

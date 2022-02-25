@@ -311,13 +311,21 @@ const DataContextProvider: React.FC = ({ children }) => {
                   saleConfig.startTime <= now && saleConfig.endTime >= now
               ) ?? parseInt(currentSaleIndex);
         const saleConfig = saleConfigs[saleConfigIndex];
+        let price = saleConfig.price;
+
+        if (stages[saleConfig.stage] === "Auction") {
+          const auctionPrice = await blockchainState?.smartContract?.methods
+            .getAuctionPrice()
+            .call();
+          price = auctionPrice;
+        }
 
         fetchDataSuccess({
           maxSupply: saleConfig.stageLimit,
           totalSupply: parseInt(totalSupply),
           startTime: saleConfig.startTime * 1000,
           endTime: saleConfig.endTime * 1000,
-          cost: parseInt(saleConfig.price),
+          cost: parseInt(price),
           stage: saleConfig.stage,
           maxMintAmount: saleConfig.stageBatchSize,
           currentSaleIndex: saleConfigIndex,

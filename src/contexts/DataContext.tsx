@@ -6,33 +6,35 @@ import { provider } from "web3-core";
 import Web3 from "web3";
 import axios from "axios";
 
+const stages = ["Whitelist", "Auction", "Public"];
+
 const saleConfigs = [
   {
     tierIndex: 1,
     startTime: 1645759500,
     endTime: 1645759800,
     stageBatchSize: 1,
-    stageLimit: 10,
+    stageLimit: 7,
     price: Web3.utils.toWei("0.8", "ether"),
-    stage: 0,
+    stage: stages.indexOf("Whitelist"),
   },
   {
     tierIndex: 2,
     startTime: 1645759800,
     endTime: 1645760100,
     stageBatchSize: 1,
-    stageLimit: 70,
+    stageLimit: 50,
     price: Web3.utils.toWei("1.2", "ether"),
-    stage: 0,
+    stage: stages.indexOf("Whitelist"),
   },
   {
     tierIndex: 1,
     startTime: 1645760100,
     endTime: 1645761900,
     stageBatchSize: 1,
-    stageLimit: 80,
+    stageLimit: 100,
     price: Web3.utils.toWei("3", "ether"),
-    stage: 1,
+    stage: stages.indexOf("Auction"),
   },
 ];
 
@@ -299,15 +301,16 @@ const DataContextProvider: React.FC = ({ children }) => {
         ]);
 
         const now = new Date().getTime() / 1000;
-        const saleConfig =
+        const saleConfigIndex =
           now < saleConfigs[0].startTime
-            ? saleConfigs[0]
+            ? 0
             : now > saleConfigs[saleConfigs.length - 1].endTime
-            ? saleConfigs[saleConfigs.length - 1]
-            : saleConfigs.find(
+            ? saleConfigs.length - 1
+            : saleConfigs.findIndex(
                 (saleConfig) =>
                   saleConfig.startTime <= now && saleConfig.endTime >= now
-              ) ?? saleConfigs[parseInt(currentSaleIndex)];
+              ) ?? parseInt(currentSaleIndex);
+        const saleConfig = saleConfigs[saleConfigIndex];
 
         fetchDataSuccess({
           maxSupply: saleConfig.stageLimit,
@@ -317,7 +320,7 @@ const DataContextProvider: React.FC = ({ children }) => {
           cost: parseInt(saleConfig.price),
           stage: saleConfig.stage,
           maxMintAmount: saleConfig.stageBatchSize,
-          currentSaleIndex: parseInt(currentSaleIndex),
+          currentSaleIndex: saleConfigIndex,
         });
       }
     } catch (err) {

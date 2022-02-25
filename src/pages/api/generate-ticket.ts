@@ -1,8 +1,8 @@
-import { hashPersonalMessage, ecsign, toRpcSig, toBuffer } from "ethereumjs-util";
-import Web3 from "web3";
+import { ecsign, toRpcSig, toBuffer } from "ethereumjs-util";
+import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{ ticket: string; signature: string }>
 ) {
@@ -10,15 +10,13 @@ export default function handler(
   const ticket = address;
 
   if (process.env.PRIVATE_KEY) {
-    const privateKey = new Buffer(process.env.PRIVATE_KEY, "hex");
-    const hash = Web3.utils.soliditySha3(address, "ticketMessage");
-    const prefixedHash = hashPersonalMessage(toBuffer(hash));
-    const signedMessage = ecsign(prefixedHash, privateKey);
-    const signature = toRpcSig(
-      signedMessage.v,
-      signedMessage.r,
-      signedMessage.s
-    ).toString();
+    let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+    const messageHash = ethers.utils.solidityKeccak256(
+      ["address", "string"],
+      [address, ticket]
+    );
+    const messageHashBinary = ethers.utils.arrayify(messageHash);
+    const signature = await wallet.signMessage(messageHashBinary);
 
     res.status(200).json({ ticket, signature });
   }

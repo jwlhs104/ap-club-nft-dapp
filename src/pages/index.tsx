@@ -270,11 +270,11 @@ const MintPage: NextPage = () => {
 
   useEffect(() => {
     let timer: number | null;
-    timer = window.setInterval(() => {
-      if (!state.loading) {
+    if (!state.loading) {
+      timer = window.setInterval(() => {
         refetchData?.();
-      }
-    }, 1000);
+      }, 1000);
+    }
 
     return () => {
       if (timer) {

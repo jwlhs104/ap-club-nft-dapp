@@ -56,7 +56,7 @@ type BlockchainDataActionType =
   | "UPDATE_ACCOUNT";
 
 const initialDataState = {
-  loading: false,
+  loading: true,
   locked: true,
   currentSaleIndex: 0,
   maxMintAmount: 1,
@@ -71,7 +71,7 @@ const initialDataState = {
   errorMsg: "",
 };
 const initialBlockchainState = {
-  loading: false,
+  loading: true,
   account: null,
   smartContract: null,
   web3: null,

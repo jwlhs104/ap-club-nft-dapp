@@ -7,36 +7,6 @@ import axios from "axios";
 
 const stages = ["Whitelist", "Auction", "Public"];
 
-const saleConfigs = [
-  {
-    tierIndex: 1,
-    startTime: 1645761900,
-    endTime: 1645762200,
-    stageBatchSize: 1,
-    stageLimit: 7,
-    price: Web3.utils.toWei("0.8", "ether"),
-    stage: stages.indexOf("Whitelist"),
-  },
-  {
-    tierIndex: 2,
-    startTime: 1645762200,
-    endTime: 1645762500,
-    stageBatchSize: 1,
-    stageLimit: 50,
-    price: Web3.utils.toWei("1.2", "ether"),
-    stage: stages.indexOf("Whitelist"),
-  },
-  {
-    tierIndex: 1,
-    startTime: 1645762500,
-    endTime: 1645764300,
-    stageBatchSize: 1,
-    stageLimit: 100,
-    price: Web3.utils.toWei("3", "ether"),
-    stage: stages.indexOf("Auction"),
-  },
-];
-
 declare global {
   interface Window {
     ethereum: MetaMaskInpageProvider;
@@ -291,74 +261,52 @@ const DataContextProvider: React.FC = ({ children }) => {
     }
   }, []);
 
-  const fetchData = useCallback(async () => {
-    fetchDataRequest();
-    try {
-      if (blockchainState?.smartContract) {
-        const [totalSupply, currentSaleIndex] = await Promise.all([
-          blockchainState?.smartContract?.methods.totalSupply().call(),
-          blockchainState?.smartContract?.methods.currentSaleIndex().call(),
-        ]);
-
-        const now = new Date().getTime() / 1000;
-        const saleConfigIndex =
-          now < saleConfigs[0].startTime
-            ? 0
-            : now > saleConfigs[saleConfigs.length - 1].endTime
-            ? saleConfigs.length - 1
-            : saleConfigs.findIndex(
-                (saleConfig) =>
-                  saleConfig.startTime <= now && saleConfig.endTime >= now
-              ) ?? parseInt(currentSaleIndex);
-        const saleConfig = saleConfigs[saleConfigIndex];
-        let price = saleConfig.price;
-
-        if (stages[saleConfig.stage] === "Auction") {
-          const auctionPrice = await blockchainState?.smartContract?.methods
-            .getAuctionPrice()
-            .call();
-          price = auctionPrice;
-        }
-
-        fetchDataSuccess({
-          maxSupply: saleConfig.stageLimit,
-          totalSupply: parseInt(totalSupply),
-          startTime: saleConfig.startTime * 1000,
-          endTime: saleConfig.endTime * 1000,
-          cost: parseInt(price),
-          stage: saleConfig.stage,
-          maxMintAmount: saleConfig.stageBatchSize,
-          currentSaleIndex: saleConfigIndex,
-        });
-      }
-    } catch (err) {
-      console.log(err);
-      fetchDataFailed("Could not load data from contract.");
-    }
-  }, [blockchainState?.smartContract]);
-
   const refetchData = useCallback(async () => {
     try {
       if (blockchainState?.smartContract) {
-        const [totalSupply, currentSaleIndex] = await Promise.all([
-          blockchainState?.smartContract?.methods.totalSupply().call(),
-          blockchainState?.smartContract?.methods.currentSaleIndex().call(),
-        ]);
+        let currentSaleIndex = 0;
+        let isSaleRoundValid = false;
+        let startTime = "0",
+          endTime = "0";
+        while (!isSaleRoundValid && currentSaleIndex < 2) {
+          [startTime, endTime] = await Promise.all([
+            blockchainState?.smartContract?.methods
+              .saleStartTimes(currentSaleIndex)
+              .call(),
+            blockchainState?.smartContract?.methods
+              .saleEndTimes(currentSaleIndex)
+              .call(),
+          ]);
+          const now = new Date().getTime() / 1000;
 
-        const now = new Date().getTime() / 1000;
-        const saleConfigIndex =
-          now < saleConfigs[0].startTime
-            ? 0
-            : now > saleConfigs[saleConfigs.length - 1].endTime
-            ? saleConfigs.length - 1
-            : saleConfigs.findIndex(
-                (saleConfig) =>
-                  saleConfig.startTime <= now && saleConfig.endTime >= now
-              ) ?? parseInt(currentSaleIndex);
-        const saleConfig = saleConfigs[saleConfigIndex];
-        let price = saleConfig.price;
+          if (parseInt(startTime) > now) {
+            break;
+          }
+          isSaleRoundValid =
+            parseInt(startTime) <= now && parseInt(endTime) >= now;
+          currentSaleIndex++;
+        }
 
-        if (stages[saleConfig.stage] === "Auction") {
+        const [totalSupply, stage, salePrice, batchSize, saleLimit] =
+          await Promise.all([
+            blockchainState?.smartContract?.methods.totalSupply().call(),
+            blockchainState?.smartContract?.methods
+              .saleStages(currentSaleIndex)
+              .call(),
+            blockchainState?.smartContract?.methods
+              .salePrices(currentSaleIndex)
+              .call(),
+            blockchainState?.smartContract?.methods
+              .saleBatchSizes(currentSaleIndex)
+              .call(),
+            blockchainState?.smartContract?.methods
+              .saleLimits(currentSaleIndex)
+              .call(),
+          ]);
+
+        let price = salePrice;
+
+        if (stages[parseInt(stage)] === "Auction") {
           const auctionPrice = await blockchainState?.smartContract?.methods
             .getAuctionPrice()
             .call();
@@ -366,14 +314,14 @@ const DataContextProvider: React.FC = ({ children }) => {
         }
 
         fetchDataSuccess({
-          maxSupply: saleConfig.stageLimit,
+          maxSupply: parseInt(saleLimit),
           totalSupply: parseInt(totalSupply),
-          startTime: saleConfig.startTime * 1000,
-          endTime: saleConfig.endTime * 1000,
+          startTime: parseInt(startTime) * 1000,
+          endTime: parseInt(endTime) * 1000,
           cost: parseInt(price),
-          stage: saleConfig.stage,
-          maxMintAmount: saleConfig.stageBatchSize,
-          currentSaleIndex: saleConfigIndex,
+          stage: parseInt(stage),
+          maxMintAmount: parseInt(batchSize),
+          currentSaleIndex,
         });
       }
     } catch (err) {
@@ -381,6 +329,16 @@ const DataContextProvider: React.FC = ({ children }) => {
       fetchDataFailed("Could not load data from contract.");
     }
   }, [blockchainState?.smartContract]);
+
+  const fetchData = useCallback(async () => {
+    fetchDataRequest();
+    try {
+      refetchData();
+    } catch (err) {
+      console.log(err);
+      fetchDataFailed("Could not load data from contract.");
+    }
+  }, [refetchData]);
 
   const connectRequest = () => {
     blockchainDispatch({ type: "CONNECTION_REQUEST" });

@@ -1,4 +1,3 @@
-import { ecsign, toRpcSig, toBuffer } from "ethereumjs-util";
 import { ethers } from "ethers";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -7,6 +6,7 @@ export default async function handler(
   res: NextApiResponse<{ ticket: string; signature: string }>
 ) {
   const address = req.body.address;
+  const tierIndex = req.body.tierIndex;
   const ticket = address;
 
   if (process.env.PRIVATE_KEY) {
@@ -21,5 +21,5 @@ export default async function handler(
     res.status(200).json({ ticket, signature });
   }
 
-  return res.status(400);
+  return res.status(400).end();
 }

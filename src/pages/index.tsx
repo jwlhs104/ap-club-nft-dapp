@@ -271,7 +271,9 @@ const MintPage: NextPage = () => {
   useEffect(() => {
     let timer: number | null;
     timer = window.setInterval(() => {
-      refetchData?.();
+      if (!state.loading) {
+        refetchData?.();
+      }
     }, 1000);
 
     return () => {
@@ -279,7 +281,7 @@ const MintPage: NextPage = () => {
         clearTimeout(timer);
       }
     };
-  }, [refetchData]);
+  }, [refetchData, state.loading]);
 
   const formattedTimeCountdown = formatTime(timeCountDown);
 

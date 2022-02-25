@@ -234,24 +234,6 @@ const MintPage: NextPage = () => {
   }, [blockchainState.smartContract, fetchData]);
 
   const isNotInWhiteList = state.currentSaleIndex === 0 && !state.isWhitelisted;
-  const currentRoundMaxMintAmount =
-    state.currentSaleIndex === 0 ? 1 : state.maxMintAmount;
-
-  const decrementMintAmount = () => {
-    let newMintAmount = mintAmount - 1;
-    if (newMintAmount < 1) {
-      newMintAmount = 1;
-    }
-    setMintAmount(newMintAmount);
-  };
-
-  const incrementMintAmount = () => {
-    let newMintAmount = mintAmount + 1;
-    if (newMintAmount > currentRoundMaxMintAmount) {
-      newMintAmount = currentRoundMaxMintAmount;
-    }
-    setMintAmount(newMintAmount);
-  };
 
   const screenWidth =
     typeof window !== "undefined"
@@ -463,37 +445,6 @@ const MintPage: NextPage = () => {
                           {feedback}
                         </s.TextDescription>
                         <s.SpacerMedium />
-                        <s.Container ai={"center"} jc={"center"} fd={"row"}>
-                          <StyledRoundButton
-                            style={{ lineHeight: 0.4 }}
-                            disabled={claimingNft ? true : false}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              decrementMintAmount();
-                            }}
-                          >
-                            -
-                          </StyledRoundButton>
-                          <s.SpacerMedium />
-                          <s.TextDescription
-                            style={{
-                              textAlign: "center",
-                              color: "var(--accent-text)",
-                            }}
-                          >
-                            {mintAmount}
-                          </s.TextDescription>
-                          <s.SpacerMedium />
-                          <StyledRoundButton
-                            disabled={claimingNft ? true : false}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              incrementMintAmount();
-                            }}
-                          >
-                            +
-                          </StyledRoundButton>
-                        </s.Container>
                       </>
                     )}
 

@@ -104,6 +104,7 @@ const MintPage: NextPage = () => {
     blockchainState,
     fetchIsWhitelisted,
     fetchData,
+    refetchData,
     connect,
     requestAccount,
   } = useDataContext();
@@ -250,33 +251,35 @@ const MintPage: NextPage = () => {
     const now = new Date().getTime();
     let timer: number | null;
     if (state.startTime > now) {
-      setLocked(true)
+      setLocked(true);
       timer = window.setInterval(() => {
         setTimeCountDown(state.startTime - new Date().getTime());
       }, 1000);
     } else if (state.endTime > now) {
       setLocked(false);
       timer = window.setInterval(() => {
-        setTimeCountDown(new Date().getTime() - state.endTime);
+        setTimeCountDown(state.endTime - new Date().getTime());
       }, 1000);
-    } else {
-      fetchData?.();
     }
     return () => {
       if (timer) {
         clearInterval(timer);
       }
     };
-  }, [fetchData, state.endTime, state.startTime]);
+  }, [state.endTime, state.startTime]);
 
   useEffect(() => {
     let timer: number | null;
-    timer = window.setTimeout(() => {
-      fetchData?.();
+    timer = window.setInterval(() => {
+      refetchData?.();
     }, 1000);
 
-    return clearTimeout(timer);
-  }, [fetchData]);
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [refetchData]);
 
   const formattedTimeCountdown = formatTime(timeCountDown);
 
@@ -465,7 +468,19 @@ const MintPage: NextPage = () => {
                           ? "Not in Whitelist"
                           : claimingNft
                           ? "BUSY"
-                          : "MINT"}
+                          : `MINT ${formattedTimeCountdown.hours
+                              .toString()
+                              .padStart(
+                                2,
+                                "0"
+                              )}:${formattedTimeCountdown.minutes
+                              .toString()
+                              .padStart(
+                                2,
+                                "0"
+                              )}:${formattedTimeCountdown.seconds
+                              .toString()
+                              .padStart(2, "0")}`}
                       </StyledButton>
                     </s.Container>
                   </div>

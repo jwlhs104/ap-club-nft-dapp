@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useReducer } from "react";
 import { Contract } from "web3-eth-contract";
-import ethUtil from "ethereumjs-util";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { provider } from "web3-core";
 import Web3 from "web3";
@@ -116,6 +115,7 @@ const DataContext = React.createContext<{
   fetchDataSuccess?: (payload: Required<DataProps>) => void;
   fetchDataFailed?: (errorMsg: string) => void;
   fetchData?: () => Promise<void>;
+  refetchData?: () => Promise<void>;
   fetchWhitelisted?: (isWhitelisted: boolean) => void;
   fetchIsWhitelisted?: (account: string) => Promise<void>;
   connectRequest?: () => void;
@@ -337,6 +337,51 @@ const DataContextProvider: React.FC = ({ children }) => {
     }
   }, [blockchainState?.smartContract]);
 
+  const refetchData = useCallback(async () => {
+    try {
+      if (blockchainState?.smartContract) {
+        const [totalSupply, currentSaleIndex] = await Promise.all([
+          blockchainState?.smartContract?.methods.totalSupply().call(),
+          blockchainState?.smartContract?.methods.currentSaleIndex().call(),
+        ]);
+
+        const now = new Date().getTime() / 1000;
+        const saleConfigIndex =
+          now < saleConfigs[0].startTime
+            ? 0
+            : now > saleConfigs[saleConfigs.length - 1].endTime
+            ? saleConfigs.length - 1
+            : saleConfigs.findIndex(
+                (saleConfig) =>
+                  saleConfig.startTime <= now && saleConfig.endTime >= now
+              ) ?? parseInt(currentSaleIndex);
+        const saleConfig = saleConfigs[saleConfigIndex];
+        let price = saleConfig.price;
+
+        if (stages[saleConfig.stage] === "Auction") {
+          const auctionPrice = await blockchainState?.smartContract?.methods
+            .getAuctionPrice()
+            .call();
+          price = auctionPrice;
+        }
+
+        fetchDataSuccess({
+          maxSupply: saleConfig.stageLimit,
+          totalSupply: parseInt(totalSupply),
+          startTime: saleConfig.startTime * 1000,
+          endTime: saleConfig.endTime * 1000,
+          cost: parseInt(price),
+          stage: saleConfig.stage,
+          maxMintAmount: saleConfig.stageBatchSize,
+          currentSaleIndex: saleConfigIndex,
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      fetchDataFailed("Could not load data from contract.");
+    }
+  }, [blockchainState?.smartContract]);
+
   const connectRequest = () => {
     blockchainDispatch({ type: "CONNECTION_REQUEST" });
   };
@@ -428,6 +473,7 @@ const DataContextProvider: React.FC = ({ children }) => {
         fetchDataSuccess,
         fetchDataFailed,
         fetchData,
+        refetchData,
         fetchWhitelisted,
         fetchIsWhitelisted,
         connectRequest,

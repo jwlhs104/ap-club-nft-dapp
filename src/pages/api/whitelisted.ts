@@ -6,5 +6,7 @@ export default function handler(
 ) {
   const address = req.body.address;
 
+  const whitelistedAddress = ["0x331e14E9e312A28C816F630215688f7f5eA593Bb"];
+
   return res.status(200).json({ isWhitelisted: true });
 }

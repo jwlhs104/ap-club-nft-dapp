@@ -110,7 +110,7 @@ const MintPage: NextPage = () => {
   } = useDataContext();
 
   const [claimingNft, setClaimingNft] = useState(false);
-  const [feedback, setFeedback] = useState(`Click buy to mint your NFT.`);
+  const [feedback, setFeedback] = useState(`Click to mint your NFT.`);
   const [mintAmount, setMintAmount] = useState(1);
   const [CONFIG, SET_CONFIG] = useState({
     CONTRACT_ADDRESS: "",
@@ -250,33 +250,26 @@ const MintPage: NextPage = () => {
   useEffect(() => {
     const now = new Date().getTime();
     let timer: number | null;
-    if (state.startTime > now) {
-      setLocked(true);
-      const timeDelta = state.startTime - new Date().getTime();
+    const refetchIfTimeout = (timestamp: number) => {
+      const timeDelta = timestamp - new Date().getTime();
       if (timeDelta >= 0) {
         setTimeCountDown(timeDelta);
+      } else {
+        refetchData?.();
       }
+    };
+
+    if (state.startTime > now) {
+      setLocked(true);
+      refetchIfTimeout(state.startTime);
       timer = window.setInterval(() => {
-        const timeDelta = state.startTime - new Date().getTime();
-        if (timeDelta >= 0) {
-          setTimeCountDown(timeDelta);
-        } else {
-          refetchData?.();
-        }
+        refetchIfTimeout(state.startTime);
       }, 1000);
     } else if (state.endTime > now) {
       setLocked(false);
-      const timeDelta = state.endTime - new Date().getTime();
-      if (timeDelta >= 0) {
-        setTimeCountDown(timeDelta);
-      }
+      refetchIfTimeout(state.endTime);
       timer = window.setInterval(() => {
-        const timeDelta = state.endTime - new Date().getTime();
-        if (timeDelta >= 0) {
-          setTimeCountDown(timeDelta);
-        } else {
-          refetchData?.();
-        }
+        refetchIfTimeout(state.endTime);
       }, 1000);
     }
     return () => {

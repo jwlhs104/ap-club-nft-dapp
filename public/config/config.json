@@ -1,6 +1,6 @@
 {
-  "CONTRACT_ADDRESS": "0x2dd055CF8a9629D0A98a8ef569b9b900e9d11a86",
-  "SCAN_LINK": "https://etherscan.io/address/0xC447Aa60d25a51c02A295992d21B98efB027B12b",
+  "CONTRACT_ADDRESS": "0xEa4dAF2B4FF77958b8338698B1AD1b312e1c9bb8",
+  "SCAN_LINK": "https://rinkeby.etherscan.io/address/0xEa4dAF2B4FF77958b8338698B1AD1b312e1c9bb8",
   "NETWORK": {
     "NAME": "Ethereum Testnet",
     "SYMBOL": "ETH",

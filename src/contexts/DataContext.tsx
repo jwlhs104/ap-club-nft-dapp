@@ -266,19 +266,22 @@ const DataContextProvider: React.FC = ({ children }) => {
       if (blockchainState?.smartContract) {
         let currentSaleIndex = -1;
         let isSaleRoundValid = false;
+        let saleConfig = null;
         let startTime = "0",
           endTime = "0";
+
+        const totalSupply = await blockchainState?.smartContract?.methods
+          .totalSupply()
+          .call();
+
         while (!isSaleRoundValid && currentSaleIndex < 2) {
           currentSaleIndex++;
 
-          [startTime, endTime] = await Promise.all([
-            blockchainState?.smartContract?.methods
-              .saleStartTimes(currentSaleIndex)
-              .call(),
-            blockchainState?.smartContract?.methods
-              .saleEndTimes(currentSaleIndex)
-              .call(),
-          ]);
+          saleConfig = await blockchainState?.smartContract?.methods
+            .saleConfigs(currentSaleIndex)
+            .call();
+          startTime = saleConfig.startTime;
+          endTime = saleConfig.endTime;
           const now = new Date().getTime() / 1000;
 
           if (parseInt(startTime) > now) {
@@ -292,26 +295,8 @@ const DataContextProvider: React.FC = ({ children }) => {
           currentSaleIndex = 0;
         }
 
-        const [totalSupply, stage, salePrice, batchSize, saleLimit] =
-          await Promise.all([
-            blockchainState?.smartContract?.methods.totalSupply().call(),
-            blockchainState?.smartContract?.methods
-              .saleStages(currentSaleIndex)
-              .call(),
-            blockchainState?.smartContract?.methods
-              .salePrices(currentSaleIndex)
-              .call(),
-            blockchainState?.smartContract?.methods
-              .saleBatchSizes(currentSaleIndex)
-              .call(),
-            blockchainState?.smartContract?.methods
-              .saleLimits(currentSaleIndex)
-              .call(),
-          ]);
-
-        let price = salePrice;
-
-        if (stages[parseInt(stage)] === "Auction") {
+        let price = saleConfig.price;
+        if (stages[parseInt(saleConfig.stage)] === "Auction") {
           const auctionPrice = await blockchainState?.smartContract?.methods
             .getAuctionPrice()
             .call();
@@ -319,13 +304,13 @@ const DataContextProvider: React.FC = ({ children }) => {
         }
 
         fetchDataSuccess({
-          maxSupply: parseInt(saleLimit),
+          maxSupply: parseInt(saleConfig.stageLimit),
           totalSupply: parseInt(totalSupply),
           startTime: parseInt(startTime) * 1000,
           endTime: parseInt(endTime) * 1000,
           cost: parseInt(price),
-          stage: parseInt(stage),
-          maxMintAmount: parseInt(batchSize),
+          stage: parseInt(saleConfig.stage),
+          maxMintAmount: parseInt(saleConfig.stageBatchSize),
           currentSaleIndex,
         });
       }

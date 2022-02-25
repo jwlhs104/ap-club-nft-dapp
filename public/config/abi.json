@@ -1,5 +1,26 @@
 [
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "maxBatchSize_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "collectionSize_",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_signerAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -256,23 +277,51 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "maxBatchSize_",
+        "name": "_saleIndex",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "collectionSize_",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_signerAddress",
-        "type": "address"
       }
     ],
-    "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "getSaleConfig",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint32",
+            "name": "startTime",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "endTime",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "stageBatchSize",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "stageLimit",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "price",
+            "type": "uint64"
+          },
+          {
+            "internalType": "enum NFTContract.SaleStage",
+            "name": "stage",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct NFTContract.SaleConfig",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -497,107 +546,37 @@
         "type": "uint256"
       }
     ],
-    "name": "saleBatchSizes",
+    "name": "saleConfigs",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
+        "internalType": "uint32",
+        "name": "startTime",
+        "type": "uint32"
+      },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "saleEndTimes",
-    "outputs": [
+        "internalType": "uint32",
+        "name": "endTime",
+        "type": "uint32"
+      },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
+        "internalType": "uint32",
+        "name": "stageBatchSize",
+        "type": "uint32"
+      },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "saleLimits",
-    "outputs": [
+        "internalType": "uint64",
+        "name": "stageLimit",
+        "type": "uint64"
+      },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "salePrices",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "saleStages",
-    "outputs": [
+        "internalType": "uint64",
+        "name": "price",
+        "type": "uint64"
+      },
       {
         "internalType": "enum NFTContract.SaleStage",
-        "name": "",
+        "name": "stage",
         "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "saleStartTimes",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -709,29 +688,29 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint32",
         "name": "_startTime",
-        "type": "uint256"
+        "type": "uint32"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint32",
         "name": "_endTime",
-        "type": "uint256"
+        "type": "uint32"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint32",
         "name": "_stageBatchSize",
-        "type": "uint256"
+        "type": "uint32"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "_stageLimit",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
-        "internalType": "uint256",
+        "internalType": "uint64",
         "name": "_price",
-        "type": "uint256"
+        "type": "uint64"
       },
       {
         "internalType": "enum NFTContract.SaleStage",

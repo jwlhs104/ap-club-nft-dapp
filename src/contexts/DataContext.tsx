@@ -9,8 +9,8 @@ import axios from "axios";
 const saleConfigs = [
   {
     tierIndex: 1,
-    startTime: 1645756200,
-    endTime: 1645756800,
+    startTime: 1645759500,
+    endTime: 1645759800,
     stageBatchSize: 1,
     stageLimit: 10,
     price: Web3.utils.toWei("0.5", "ether"),
@@ -18,8 +18,8 @@ const saleConfigs = [
   },
   {
     tierIndex: 2,
-    startTime: 1645756800,
-    endTime: 1645757400,
+    startTime: 1645759800,
+    endTime: 1645760100,
     stageBatchSize: 1,
     stageLimit: 70,
     price: Web3.utils.toWei("0.8", "ether"),
@@ -27,8 +27,8 @@ const saleConfigs = [
   },
   {
     tierIndex: 1,
-    startTime: 1645757400,
-    endTime: 1645759200,
+    startTime: 1645760100,
+    endTime: 1645761900,
     stageBatchSize: 1,
     stageLimit: 80,
     price: Web3.utils.toWei("3", "ether"),

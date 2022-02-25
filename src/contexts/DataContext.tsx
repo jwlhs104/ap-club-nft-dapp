@@ -10,8 +10,8 @@ const stages = ["Whitelist", "Auction", "Public"];
 const saleConfigs = [
   {
     tierIndex: 1,
-    startTime: 1645759500,
-    endTime: 1645759800,
+    startTime: 1645761900,
+    endTime: 1645762200,
     stageBatchSize: 1,
     stageLimit: 7,
     price: Web3.utils.toWei("0.8", "ether"),
@@ -19,8 +19,8 @@ const saleConfigs = [
   },
   {
     tierIndex: 2,
-    startTime: 1645759800,
-    endTime: 1645760100,
+    startTime: 1645762200,
+    endTime: 1645762500,
     stageBatchSize: 1,
     stageLimit: 50,
     price: Web3.utils.toWei("1.2", "ether"),
@@ -28,8 +28,8 @@ const saleConfigs = [
   },
   {
     tierIndex: 1,
-    startTime: 1645760100,
-    endTime: 1645761900,
+    startTime: 1645762500,
+    endTime: 1645764300,
     stageBatchSize: 1,
     stageLimit: 100,
     price: Web3.utils.toWei("3", "ether"),

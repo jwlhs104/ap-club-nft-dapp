@@ -179,16 +179,16 @@ const MintPage: NextPage = () => {
               value: totalCostWei,
             });
         }
+
+        console.log(receipt);
+        setFeedback(
+          `WOW, the ${CONFIG.NFT_NAME} is yours! go visit Opensea.io to view it.`
+        );
       } catch (err: any) {
         console.log(err);
         setFeedback("Sorry, something went wrong please try again later.");
         setClaimingNft(false);
       }
-
-      console.log(receipt);
-      setFeedback(
-        `WOW, the ${CONFIG.NFT_NAME} is yours! go visit Opensea.io to view it.`
-      );
       if (blockchainState.account) {
         fetchIsWhitelisted?.(blockchainState.account);
         fetchData?.();

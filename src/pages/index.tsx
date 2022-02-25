@@ -252,6 +252,10 @@ const MintPage: NextPage = () => {
     let timer: number | null;
     if (state.startTime > now) {
       setLocked(true);
+      const timeDelta = state.startTime - new Date().getTime();
+      if (timeDelta >= 0) {
+        setTimeCountDown(timeDelta);
+      }
       timer = window.setInterval(() => {
         const timeDelta = state.startTime - new Date().getTime();
         if (timeDelta >= 0) {
@@ -262,6 +266,10 @@ const MintPage: NextPage = () => {
       }, 1000);
     } else if (state.endTime > now) {
       setLocked(false);
+      const timeDelta = state.endTime - new Date().getTime();
+      if (timeDelta >= 0) {
+        setTimeCountDown(timeDelta);
+      }
       timer = window.setInterval(() => {
         const timeDelta = state.endTime - new Date().getTime();
         if (timeDelta >= 0) {

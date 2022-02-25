@@ -264,11 +264,13 @@ const DataContextProvider: React.FC = ({ children }) => {
   const refetchData = useCallback(async () => {
     try {
       if (blockchainState?.smartContract) {
-        let currentSaleIndex = 0;
+        let currentSaleIndex = -1;
         let isSaleRoundValid = false;
         let startTime = "0",
           endTime = "0";
         while (!isSaleRoundValid && currentSaleIndex < 2) {
+          currentSaleIndex++;
+
           [startTime, endTime] = await Promise.all([
             blockchainState?.smartContract?.methods
               .saleStartTimes(currentSaleIndex)
@@ -284,7 +286,10 @@ const DataContextProvider: React.FC = ({ children }) => {
           }
           isSaleRoundValid =
             parseInt(startTime) <= now && parseInt(endTime) >= now;
-          currentSaleIndex++;
+        }
+
+        if (currentSaleIndex < 0) {
+          currentSaleIndex = 0;
         }
 
         const [totalSupply, stage, salePrice, batchSize, saleLimit] =

@@ -13,7 +13,7 @@ const saleConfigs = [
     endTime: 1645759800,
     stageBatchSize: 1,
     stageLimit: 10,
-    price: Web3.utils.toWei("0.5", "ether"),
+    price: Web3.utils.toWei("0.8", "ether"),
     stage: 0,
   },
   {
@@ -22,7 +22,7 @@ const saleConfigs = [
     endTime: 1645760100,
     stageBatchSize: 1,
     stageLimit: 70,
-    price: Web3.utils.toWei("0.8", "ether"),
+    price: Web3.utils.toWei("1.2", "ether"),
     stage: 0,
   },
   {

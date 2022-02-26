@@ -5,7 +5,7 @@ import { provider } from "web3-core";
 import Web3 from "web3";
 import axios from "axios";
 
-const stages = ["Whitelist", "Auction", "Public"];
+const stages = ["Whitelist", "Dutch Auction", "Public Sale"];
 
 declare global {
   interface Window {
@@ -20,10 +20,12 @@ type DataProps = {
   maxMintAmount: number;
   totalSupply: number;
   maxSupply: number;
+  stageName: string;
   startTime: number;
   endTime: number;
   cost: number;
   stage: number;
+  loadingWhitelist: boolean;
   isWhitelisted: boolean;
   error: boolean;
   errorMsg: string;
@@ -36,6 +38,7 @@ type DataActionType =
   | "CHECK_DATA_REQUEST"
   | "CHECK_DATA_SUCCESS"
   | "CHECK_DATA_FAILED"
+  | "START_FETCH_WHITELISTED"
   | "FETCH_WHITELISTED";
 
 type BlockchainDataProps = {
@@ -62,10 +65,12 @@ const initialDataState = {
   maxMintAmount: 1,
   totalSupply: -1,
   maxSupply: 0,
+  stageName: "",
   startTime: 0,
   endTime: 0,
   cost: 0,
   stage: 0,
+  loadingWhitelist: true,
   isWhitelisted: false,
   error: false,
   errorMsg: "",
@@ -116,6 +121,7 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
     case "CHECK_DATA_SUCCESS":
       if (action.payload) {
         const {
+          stageName,
           currentSaleIndex,
           maxMintAmount,
           startTime,
@@ -130,6 +136,7 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
           typeof currentSaleIndex !== "undefined" &&
           typeof totalSupply !== "undefined" &&
           typeof stage !== "undefined" &&
+          stageName &&
           startTime &&
           endTime &&
           maxMintAmount &&
@@ -143,6 +150,7 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
             maxMintAmount,
             totalSupply,
             maxSupply,
+            stageName,
             startTime,
             endTime,
             cost,
@@ -164,10 +172,20 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
       } else {
         return state;
       }
+    case "START_FETCH_WHITELISTED":
+      if (action.payload?.isWhitelisted) {
+        return {
+          ...state,
+          loadingWhitelist: true,
+        };
+      } else {
+        return state;
+      }
     case "FETCH_WHITELISTED":
       if (action.payload?.isWhitelisted) {
         return {
           ...state,
+          loadingWhitelist: false,
           isWhitelisted: action.payload.isWhitelisted,
         };
       } else {
@@ -216,6 +234,7 @@ const blockchainDataReducer: (
       if (action.payload?.account) {
         return {
           ...state,
+          loading: false,
           account: action.payload.account,
         };
       } else {
@@ -248,6 +267,8 @@ const DataContextProvider: React.FC = ({ children }) => {
 
   const fetchIsWhitelisted = useCallback(async (account: string) => {
     try {
+      dispatch({ type: "START_FETCH_WHITELISTED" });
+
       const { origin } = window;
       const { data } = await axios.post(`${origin}/api/whitelisted`, {
         address: account,
@@ -267,6 +288,7 @@ const DataContextProvider: React.FC = ({ children }) => {
         let currentSaleIndex = -1;
         let isSaleRoundValid = false;
         let saleConfig = null;
+        let stageName = "";
         let startTime = "0",
           endTime = "0";
 
@@ -280,9 +302,9 @@ const DataContextProvider: React.FC = ({ children }) => {
           saleConfig = await blockchainState?.smartContract?.methods
             .saleConfigs(currentSaleIndex)
             .call();
-          startTime = saleConfig.startTime;
-          endTime = saleConfig.endTime;
-          const now = new Date().getTime() / 1000;
+          startTime = saleConfig["startTime"];
+          endTime = saleConfig["endTime"];
+          const now = Math.floor(new Date().getTime() / 1000);
 
           if (parseInt(startTime) > now) {
             break;
@@ -295,15 +317,19 @@ const DataContextProvider: React.FC = ({ children }) => {
           currentSaleIndex = 0;
         }
 
+        stageName = stages[parseInt(saleConfig.stage)];
         let price = saleConfig.price;
-        if (stages[parseInt(saleConfig.stage)] === "Auction") {
+        if (stages[parseInt(saleConfig.stage)] === "Dutch Auction") {
           const auctionPrice = await blockchainState?.smartContract?.methods
             .getAuctionPrice()
             .call();
           price = auctionPrice;
+        } else if (stages[parseInt(saleConfig.stage)] === "Whitelist") {
+          stageName = `${stageName} Tier ${saleConfig.tierIndex}`;
         }
 
         fetchDataSuccess({
+          stageName,
           maxSupply: parseInt(saleConfig.stageLimit),
           totalSupply: parseInt(totalSupply),
           startTime: parseInt(startTime) * 1000,
@@ -358,54 +384,40 @@ const DataContextProvider: React.FC = ({ children }) => {
 
   const connect = useCallback(async () => {
     connectRequest();
-    const abiResponse = await fetch("/config/abi.json", {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
-    const abi = await abiResponse.json();
-    const configResponse = await fetch("/config/config.json", {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
-    const CONFIG = await configResponse.json();
-    const { ethereum } = window;
-    const metamaskIsInstalled = ethereum && ethereum.isMetaMask;
+    const { origin } = window;
+    const { data: abi } = await axios.get(`${origin}/config/abi.json`);
+    const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
+    const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID as string;
+    const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME as string;
 
-    if (metamaskIsInstalled) {
-      let web3 = new Web3(ethereum as provider);
+    const { ethereum } = window;
+    if (ethereum && ethereum.isMetaMask) {
+      const web3 = new Web3(ethereum as provider);
+      ethereum.on("accountsChanged", (accounts) => {
+        updateAccountRequest((accounts as string[])[0]);
+      });
+
+      ethereum.on("chainChanged", () => {
+        console.log("change");
+        window.location.reload();
+      });
+
+      const SmartContractObj = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
 
       try {
         const networkId = await ethereum.request({
           method: "net_version",
         });
-        if (networkId == CONFIG.NETWORK.ID) {
-          const SmartContractObj = new web3.eth.Contract(
-            abi,
-            CONFIG.CONTRACT_ADDRESS
-          );
-
+        if (networkId == NETWORK_ID) {
           connectSuccess({
             smartContract: SmartContractObj,
             web3: web3,
           });
-
-          // Add listeners start
-          ethereum.on("accountsChanged", (accounts) => {
-            updateAccountRequest((accounts as string[])[0]);
-          });
-          ethereum.on("chainChanged", () => {
-            window.location.reload();
-          });
-          // Add listeners end
         } else {
-          connectFailed(`Change network to ${CONFIG.NETWORK.NAME}.`);
+          connectFailed(`Change network to ${NETWORK_NAME}.`);
         }
-      } catch (err) {
-        connectFailed("Something went wrong.");
+      } catch (err: any) {
+        connectFailed(`Something went wrong. ${err.message}`);
       }
     } else {
       connectFailed("Install Metamask.");

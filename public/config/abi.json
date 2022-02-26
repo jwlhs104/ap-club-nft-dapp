@@ -286,6 +286,11 @@
       {
         "components": [
           {
+            "internalType": "uint16",
+            "name": "tierIndex",
+            "type": "uint16"
+          },
+          {
             "internalType": "uint32",
             "name": "startTime",
             "type": "uint32"
@@ -549,6 +554,11 @@
     "name": "saleConfigs",
     "outputs": [
       {
+        "internalType": "uint16",
+        "name": "tierIndex",
+        "type": "uint16"
+      },
+      {
         "internalType": "uint32",
         "name": "startTime",
         "type": "uint32"
@@ -686,6 +696,11 @@
         "internalType": "uint256",
         "name": "_saleIndex",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "_tierIndex",
+        "type": "uint16"
       },
       {
         "internalType": "uint32",

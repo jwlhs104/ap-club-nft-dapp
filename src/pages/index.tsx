@@ -156,7 +156,6 @@ const MintPage: NextPage = () => {
             .whitelistMint(mintAmount, ticket, signature)
             .send({
               gasLimit: String(totalGasLimit),
-              to: CONFIG.CONTRACT_ADDRESS,
               from: blockchainState.account,
               value: totalCostWei,
             });
@@ -165,7 +164,6 @@ const MintPage: NextPage = () => {
             .auctionMint(mintAmount)
             .send({
               gasLimit: String(totalGasLimit),
-              to: CONFIG.CONTRACT_ADDRESS,
               from: blockchainState.account,
               value: totalCostWei,
             });
@@ -174,7 +172,6 @@ const MintPage: NextPage = () => {
             .publicSaleMint(mintAmount)
             .send({
               gasLimit: String(totalGasLimit),
-              to: CONFIG.CONTRACT_ADDRESS,
               from: blockchainState.account,
               value: totalCostWei,
             });
@@ -234,7 +231,8 @@ const MintPage: NextPage = () => {
     }
   }, [blockchainState.smartContract, fetchData]);
 
-  const isNotInWhiteList = state.currentSaleIndex === 0 && !state.isWhitelisted;
+  const isNotInWhiteList = state.stage === 0 && !state.isWhitelisted;
+  const loadingWhitelist = state.stage === 0 && state.loadingWhitelist;
 
   const screenWidth =
     typeof window !== "undefined"
@@ -246,32 +244,30 @@ const MintPage: NextPage = () => {
   const displayCost = (state.cost / 10 ** 18).toString();
 
   const [timeCountDown, setTimeCountDown] = useState(1000000);
-  const [locked, setLocked] = useState(false);
+  const [locked, setLocked] = useState(true);
+
   useEffect(() => {
-    const now = new Date().getTime();
     let timer: number | null;
-    const refetchIfTimeout = (timestamp: number) => {
-      const timeDelta = timestamp - new Date().getTime();
-      if (timeDelta >= 0) {
+    const refetchIfTimeout = () => {
+      const now = new Date().getTime();
+      if (state.startTime > now) {
+        setLocked(true);
+        const timeDelta = state.startTime - now;
+        setTimeCountDown(timeDelta);
+      } else if (state.endTime > now) {
+        setLocked(false);
+        const timeDelta = state.endTime - now;
         setTimeCountDown(timeDelta);
       } else {
         refetchData?.();
       }
     };
 
-    if (state.startTime > now) {
-      setLocked(true);
-      refetchIfTimeout(state.startTime);
-      timer = window.setInterval(() => {
-        refetchIfTimeout(state.startTime);
-      }, 1000);
-    } else if (state.endTime > now) {
-      setLocked(false);
-      refetchIfTimeout(state.endTime);
-      timer = window.setInterval(() => {
-        refetchIfTimeout(state.endTime);
-      }, 1000);
-    }
+    refetchIfTimeout();
+    timer = window.setInterval(() => {
+      refetchIfTimeout();
+    }, 1000);
+
     return () => {
       if (timer) {
         clearInterval(timer);
@@ -333,22 +329,17 @@ const MintPage: NextPage = () => {
               style={{
                 margin: -10,
                 textAlign: "center",
-                fontSize: 50,
+                fontSize: 40,
                 fontWeight: "bold",
                 color: "var(--accent-text)",
                 lineHeight: 1.05,
               }}
             >
-              <p>Test NFT Mint</p>
+              <p>{state.stageName} Mint</p>
             </s.SizedText>
-            <s.TextDescription
-              style={{
-                textAlign: "center",
-                color: "var(--color-text)",
-              }}
-            ></s.TextDescription>
+
             <s.SpacerSmall />
-            {state.loading ? (
+            {state.loading && blockchainState.loading ? (
               <s.TextTitle
                 style={{ textAlign: "center", color: "var(--accent-text)" }}
               >
@@ -477,7 +468,9 @@ const MintPage: NextPage = () => {
                           }
                         }}
                       >
-                        {isNotInWhiteList
+                        {loadingWhitelist
+                          ? "Loading"
+                          : isNotInWhiteList
                           ? "Not in Whitelist"
                           : claimingNft
                           ? "BUSY"

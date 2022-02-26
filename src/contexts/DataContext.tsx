@@ -278,11 +278,17 @@ const DataContextProvider: React.FC = ({ children }) => {
           tierIndex,
         });
         const { ticket, signature } = data;
-        const isTicketAvailable = await blockchainState?.smartContract?.methods
-          .isTicketAvailable(ticket, signature)
-          .call();
 
-        fetchWhitelisted(isTicketAvailable);
+        if (signature) {
+          const isTicketAvailable =
+            await blockchainState?.smartContract?.methods
+              .isTicketAvailable(ticket, signature)
+              .call();
+
+          fetchWhitelisted(isTicketAvailable);
+        } else {
+          fetchWhitelisted(false);
+        }
       } catch (err) {
         console.log(err);
         fetchDataFailed("Could not load data from contract.");

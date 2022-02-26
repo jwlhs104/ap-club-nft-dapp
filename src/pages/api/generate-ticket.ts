@@ -16,7 +16,7 @@ const firestore = firebaseAdmin.firestore();
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<{ ticket: string; signature: string }>
+  res: NextApiResponse<{ ticket: string; signature: string | null }>
 ) {
   const address = req.body.address;
   const tierIndex = req.body.tierIndex;
@@ -28,20 +28,20 @@ export default async function handler(
 
   if (process.env.PRIVATE_KEY) {
     const tier: number | undefined = docData?.tier;
-    const targetAddress =
-      doc.exists && tier && parseInt(tierIndex) >= tier
-        ? address
-        : "0x0000000000000000000000000000000000000000";
 
-    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
-    const messageHash = ethers.utils.solidityKeccak256(
-      ["address", "string"],
-      [targetAddress, ticket]
-    );
-    const messageHashBinary = ethers.utils.arrayify(messageHash);
-    const signature = await wallet.signMessage(messageHashBinary);
+    if (doc.exists && tier && parseInt(tierIndex) >= tier) {
+      const wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+      const messageHash = ethers.utils.solidityKeccak256(
+        ["address", "string"],
+        ["0x0000000000000000000000000000000000000000", ticket]
+      );
+      const messageHashBinary = ethers.utils.arrayify(messageHash);
+      const signature = await wallet.signMessage(messageHashBinary);
 
-    res.status(200).json({ ticket, signature });
+      res.status(200).json({ ticket, signature });
+    } else {
+      return res.status(200).json({ ticket, signature: null });
+    }
   }
 
   return res.status(400).end();

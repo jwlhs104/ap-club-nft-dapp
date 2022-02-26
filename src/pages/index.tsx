@@ -113,7 +113,6 @@ const MintPage: NextPage = () => {
   const [feedback, setFeedback] = useState(`Click to mint your NFT.`);
   const [mintAmount, setMintAmount] = useState(1);
   const [CONFIG, SET_CONFIG] = useState({
-    CONTRACT_ADDRESS: "",
     SCAN_LINK: "",
     NETWORK: {
       NAME: "",
@@ -159,17 +158,9 @@ const MintPage: NextPage = () => {
               from: blockchainState.account,
               value: totalCostWei,
             });
-        } else if (state.stage == 1) {
-          receipt = await blockchainState?.smartContract?.methods
-            .auctionMint(mintAmount)
-            .send({
-              gasLimit: String(totalGasLimit),
-              from: blockchainState.account,
-              value: totalCostWei,
-            });
         } else {
           receipt = await blockchainState?.smartContract?.methods
-            .publicSaleMint(mintAmount)
+            .mint(mintAmount)
             .send({
               gasLimit: String(totalGasLimit),
               from: blockchainState.account,

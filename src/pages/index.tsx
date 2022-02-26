@@ -9,14 +9,14 @@ export const StyledButton = styled.button`
   padding: 50px;
   border-radius: 5px;
   border: none;
-  background-color: var(--accent-text);
+  background-color: var(--background-button);
   padding: 10px;
   font-weight: bold;
   font-size: 20px;
   color: var(--text-white);
   width: 200px;
   cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
-  box-shadow: 0px 6px 0px -2px rgba(250, 250, 250, 0.3);
+  box-shadow: 0px 6px 0px -2px rgba(250, 250, 250, 0.1);
   :active {
     box-shadow: none;
   }
@@ -291,7 +291,7 @@ const MintPage: NextPage = () => {
         ai={"center"}
         style={{
           padding: isMobile ? "40px 4px" : 24,
-          backgroundColor: "var(--primary)",
+          backgroundColor: "var(--background)",
         }}
         image={null}
       >

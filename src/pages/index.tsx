@@ -282,8 +282,6 @@ const MintPage: NextPage = () => {
     };
   }, [refetchData, state.loading]);
 
-  const formattedTimeCountdown = formatTime(timeCountDown);
-
   return (
     <s.Screen>
       <s.Container
@@ -408,13 +406,7 @@ const MintPage: NextPage = () => {
                       {state.loading
                         ? "Loading"
                         : locked
-                        ? `Coming Soon ${formattedTimeCountdown.hours
-                            .toString()
-                            .padStart(2, "0")}:${formattedTimeCountdown.minutes
-                            .toString()
-                            .padStart(2, "0")}:${formattedTimeCountdown.seconds
-                            .toString()
-                            .padStart(2, "0")}`
+                        ? 'Coming Soon'
                         : "Connect Wallet"}
                     </StyledButton>
                     {blockchainState.errorMsg !== "" ? (
@@ -466,19 +458,7 @@ const MintPage: NextPage = () => {
                           ? "Not in Whitelist"
                           : claimingNft
                           ? "BUSY"
-                          : `MINT ${formattedTimeCountdown.hours
-                              .toString()
-                              .padStart(
-                                2,
-                                "0"
-                              )}:${formattedTimeCountdown.minutes
-                              .toString()
-                              .padStart(
-                                2,
-                                "0"
-                              )}:${formattedTimeCountdown.seconds
-                              .toString()
-                              .padStart(2, "0")}`}
+                          : 'MINT'}
                       </StyledButton>
                     </s.Container>
                   </div>

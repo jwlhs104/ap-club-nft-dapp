@@ -282,8 +282,6 @@ const DataContextProvider: React.FC = ({ children }) => {
           .isTicketAvailable(ticket, signature)
           .call();
 
-        console.log(isTicketAvailable);
-
         fetchWhitelisted(isTicketAvailable);
       } catch (err) {
         console.log(err);
@@ -303,9 +301,10 @@ const DataContextProvider: React.FC = ({ children }) => {
         let startTime = "0",
           endTime = "0";
 
-        const totalSupply = await blockchainState?.smartContract?.methods
-          .totalSupply()
-          .call();
+        const [totalSupply, collectionSize] = await Promise.all([
+          blockchainState?.smartContract?.methods.totalSupply().call(),
+          blockchainState?.smartContract?.methods.collectionSize().call(),
+        ]);
 
         while (!isSaleRoundValid && currentSaleIndex < 2) {
           currentSaleIndex++;
@@ -343,7 +342,7 @@ const DataContextProvider: React.FC = ({ children }) => {
         fetchDataSuccess({
           stageName,
           tierIndex: parseInt(saleConfig.tierIndex),
-          maxSupply: parseInt(saleConfig.stageLimit),
+          maxSupply: parseInt(collectionSize),
           totalSupply: parseInt(totalSupply),
           startTime: parseInt(startTime) * 1000,
           endTime: parseInt(endTime) * 1000,

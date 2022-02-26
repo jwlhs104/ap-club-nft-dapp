@@ -29,15 +29,15 @@ export default async function handler(
   if (process.env.PRIVATE_KEY) {
     const tier: number | undefined = docData?.tier;
     const targetAddress =
-      doc.exists && tier && parseInt(tierIndex) >= tier ? address : "0x00";
+      doc.exists && tier && parseInt(tierIndex) >= tier ? docId : "0x00";
 
-    let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+    let signer = new ethers.Wallet(process.env.PRIVATE_KEY);
     const messageHash = ethers.utils.solidityKeccak256(
       ["address", "string"],
       [targetAddress, ticket]
     );
     const messageHashBinary = ethers.utils.arrayify(messageHash);
-    const signature = await wallet.signMessage(messageHashBinary);
+    const signature = await signer.signMessage(messageHashBinary);
 
     res.status(200).json({ ticket, signature });
   }

@@ -33,8 +33,9 @@ export default async function handler(
       const wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
       const messageHash = ethers.utils.solidityKeccak256(
         ["address", "string"],
-        ["0x0000000000000000000000000000000000000000", ticket]
+        [address, ticket]
       );
+
       const messageHashBinary = ethers.utils.arrayify(messageHash);
       const signature = await wallet.signMessage(messageHashBinary);
 

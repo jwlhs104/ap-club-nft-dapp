@@ -283,7 +283,7 @@ const DataContextProvider: React.FC = ({ children }) => {
           const isTicketAvailable =
             await blockchainState?.smartContract?.methods
               .isTicketAvailable(ticket, signature)
-              .call();
+              .call({ from: blockchainState.account });
 
           fetchWhitelisted(isTicketAvailable);
         } else {
@@ -294,7 +294,7 @@ const DataContextProvider: React.FC = ({ children }) => {
         fetchDataFailed("Could not load data from contract.");
       }
     },
-    [blockchainState?.smartContract?.methods]
+    [blockchainState.account, blockchainState?.smartContract?.methods]
   );
 
   const refetchData = useCallback(async () => {

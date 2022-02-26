@@ -142,6 +142,7 @@ const MintPage: NextPage = () => {
           const { origin } = window;
           const { data } = await axios.post(`${origin}/api/generate-ticket`, {
             address: blockchainState.account,
+            tierIndex: state.tierIndex,
           });
           const { ticket, signature } = data;
           receipt = await blockchainState?.smartContract?.methods

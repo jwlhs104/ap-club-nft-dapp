@@ -4,7 +4,6 @@ import { MetaMaskInpageProvider } from "@metamask/providers";
 import { provider } from "web3-core";
 import Web3 from "web3";
 import axios from "axios";
-import { utils } from "ethers";
 
 const stages = ["Whitelist", "Dutch Auction", "Public Sale"];
 
@@ -389,8 +388,7 @@ const DataContextProvider: React.FC = ({ children }) => {
         method: "eth_requestAccounts",
       });
 
-      const address = utils.getAddress((accounts as string[])[0]);
-      updateAccountRequest(address);
+      updateAccountRequest((accounts as string[])[0]);
       fetchData();
     } catch (err) {
       connectFailed("Something went wrong.");

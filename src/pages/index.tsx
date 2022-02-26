@@ -225,8 +225,6 @@ const MintPage: NextPage = () => {
   const isNotInWhiteList = state.stage === 0 && !state.isWhitelisted;
   const loadingWhitelist = state.stage === 0 && state.loadingWhitelist;
 
-  console.log(loadingWhitelist, state.loadingWhitelist)
-
   const screenWidth =
     typeof window !== "undefined"
       ? window.innerWidth > 0

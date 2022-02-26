@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import firebaseAdmin from "firebase-admin";
 import { NextApiRequest, NextApiResponse } from "next";
 const serviceAccount = require("../../configs/serviceAccountKey.json");
@@ -22,12 +22,14 @@ export default async function handler(
   const tierIndex = req.body.tierIndex;
   const ticket = address;
 
-  const doc = await firestore.collection("whitelist").doc(address).get();
+  const docId = utils.getAddress(address);
+  const doc = await firestore.collection("whitelist").doc(docId).get();
   const docData = doc.data();
 
   if (process.env.PRIVATE_KEY) {
     const tier: number | undefined = docData?.tier;
-    const targetAddress = doc.exists && tierIndex === tier ? address : "0x0";
+    const targetAddress =
+      doc.exists && tier && parseInt(tierIndex) >= tier ? address : "0x00";
 
     let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
     const messageHash = ethers.utils.solidityKeccak256(

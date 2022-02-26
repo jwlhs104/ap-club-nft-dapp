@@ -4,6 +4,7 @@ import * as s from "../styles/globalStyles";
 import styled from "styled-components";
 import { useDataContext } from "../contexts/DataContext";
 import axios from "axios";
+import Head from "next/head";
 
 export const StyledButton = styled.button`
   padding: 50px;
@@ -113,12 +114,6 @@ const MintPage: NextPage = () => {
   const [feedback, setFeedback] = useState(`Click to mint your NFT.`);
   const [mintAmount, setMintAmount] = useState(1);
   const [CONFIG, SET_CONFIG] = useState({
-    SCAN_LINK: "",
-    NETWORK: {
-      NAME: "",
-      SYMBOL: "",
-      ID: 0,
-    },
     NFT_NAME: "",
     SYMBOL: "",
     MAX_SUPPLY: 1,
@@ -127,8 +122,6 @@ const MintPage: NextPage = () => {
     GAS_LIMIT: 0,
     MARKETPLACE: "",
     MARKETPLACE_LINK: "",
-    SHOW_BACKGROUND: false,
-    ENABLE_MINT: false,
   });
 
   const claimNFTs = async () => {
@@ -284,6 +277,10 @@ const MintPage: NextPage = () => {
 
   return (
     <s.Screen>
+      <Head>
+        <title>AP Club NFT Mint</title>
+      </Head>
+
       <s.Container
         flex={1}
         ai={"center"}
@@ -406,7 +403,7 @@ const MintPage: NextPage = () => {
                       {state.loading
                         ? "Loading"
                         : locked
-                        ? 'Coming Soon'
+                        ? "Coming Soon"
                         : "Connect Wallet"}
                     </StyledButton>
                     {blockchainState.errorMsg !== "" ? (
@@ -458,7 +455,7 @@ const MintPage: NextPage = () => {
                           ? "Not in Whitelist"
                           : claimingNft
                           ? "BUSY"
-                          : 'MINT'}
+                          : "MINT"}
                       </StyledButton>
                     </s.Container>
                   </div>

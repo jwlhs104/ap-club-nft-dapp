@@ -401,7 +401,6 @@ const DataContextProvider: React.FC = ({ children }) => {
     const { data: abi } = await axios.get(`${origin}/config/abi.json`);
     const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
     const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID as string;
-    const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME as string;
 
     const { ethereum } = window;
     if (ethereum && ethereum.isMetaMask) {
@@ -427,7 +426,10 @@ const DataContextProvider: React.FC = ({ children }) => {
             web3: web3,
           });
         } else {
-          connectFailed(`Change network to ${NETWORK_NAME}.`);
+          ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: `0x${parseInt(NETWORK_ID).toString(16)}` }],
+          });
         }
       } catch (err: any) {
         connectFailed(`Something went wrong. ${err.message}`);

@@ -1,18 +1,10 @@
 {
-  "SCAN_LINK": "https://rinkeby.etherscan.io/address/0x7A49Aa947e203fAcAdD7C839D74Ed519e925DCef",
-  "NETWORK": {
-    "NAME": "Ethereum Testnet",
-    "SYMBOL": "ETH",
-    "ID": 4
-  },
-  "NFT_NAME": "TEST NFT",
-  "SYMBOL": "TST",
+  "NFT_NAME": "AP Club NFT",
+  "SYMBOL": "AP",
   "MAX_SUPPLY": 10000,
   "WEI_COST": 1000000000000000000,
   "DISPLAY_COST": 1,
   "GAS_LIMIT": 285000,
   "MARKETPLACE": "",
-  "MARKETPLACE_LINK": "",
-  "SHOW_BACKGROUND": true,
-  "ENABLE_MINT": true
+  "MARKETPLACE_LINK": ""
 }

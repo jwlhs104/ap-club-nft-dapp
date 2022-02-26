@@ -331,8 +331,9 @@ const DataContextProvider: React.FC = ({ children }) => {
         stageName = stages[parseInt(saleConfig.stage)];
         let price = saleConfig.price;
         if (stages[parseInt(saleConfig.stage)] === "Dutch Auction") {
+          const now = Math.floor(new Date().getTime() / 1000);
           const auctionPrice = await blockchainState?.smartContract?.methods
-            .getAuctionPrice()
+            .getAuctionPrice(now)
             .call();
           price = auctionPrice;
         } else if (stages[parseInt(saleConfig.stage)] === "Whitelist") {

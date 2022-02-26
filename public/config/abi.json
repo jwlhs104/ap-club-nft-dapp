@@ -147,14 +147,19 @@
         "type": "uint64"
       },
       {
-        "internalType": "uint64",
-        "name": "priceCurveLength",
-        "type": "uint64"
+        "internalType": "uint32",
+        "name": "startTime",
+        "type": "uint32"
       },
       {
-        "internalType": "uint64",
+        "internalType": "uint32",
+        "name": "priceCurveLength",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
         "name": "dropPriceInterval",
-        "type": "uint64"
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -225,7 +230,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "currentTimestamp",
+        "type": "uint256"
+      }
+    ],
     "name": "getAuctionPrice",
     "outputs": [
       {
@@ -266,62 +277,6 @@
           }
         ],
         "internalType": "struct ERC721A.TokenOwnership",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_saleIndex",
-        "type": "uint256"
-      }
-    ],
-    "name": "getSaleConfig",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "uint16",
-            "name": "tierIndex",
-            "type": "uint16"
-          },
-          {
-            "internalType": "uint32",
-            "name": "startTime",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "endTime",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "stageBatchSize",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint64",
-            "name": "stageLimit",
-            "type": "uint64"
-          },
-          {
-            "internalType": "uint64",
-            "name": "price",
-            "type": "uint64"
-          },
-          {
-            "internalType": "enum NFTContract.SaleStage",
-            "name": "stage",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct NFTContract.SaleConfig",
         "name": "",
         "type": "tuple"
       }
@@ -623,14 +578,19 @@
         "type": "uint64"
       },
       {
-        "internalType": "uint64",
-        "name": "auctionPriceCurveLength",
-        "type": "uint64"
+        "internalType": "uint32",
+        "name": "_startTime",
+        "type": "uint32"
       },
       {
-        "internalType": "uint64",
+        "internalType": "uint32",
+        "name": "auctionPriceCurveLength",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
         "name": "auctionDropInterval",
-        "type": "uint64"
+        "type": "uint32"
       }
     ],
     "name": "setAuctionConfig",

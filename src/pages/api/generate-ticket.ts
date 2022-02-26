@@ -1,5 +1,18 @@
 import { ethers } from "ethers";
+import firebaseAdmin from "firebase-admin";
 import { NextApiRequest, NextApiResponse } from "next";
+const serviceAccount = require("../../configs/serviceAccountKey.json");
+
+if (!firebaseAdmin.apps.length) {
+  firebaseAdmin.initializeApp({
+    credential: firebaseAdmin.credential.cert(serviceAccount),
+    databaseURL: "https://ap-club-nft.firebaseio.com",
+  });
+} else {
+  firebaseAdmin.app();
+}
+
+const firestore = firebaseAdmin.firestore();
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,11 +22,17 @@ export default async function handler(
   const tierIndex = req.body.tierIndex;
   const ticket = address;
 
+  const doc = await firestore.collection("whitelist").doc(address).get();
+  const docData = doc.data();
+
   if (process.env.PRIVATE_KEY) {
+    const tier: number | undefined = docData?.tier;
+    const targetAddress = doc.exists && tierIndex === tier ? address : "0x0";
+
     let wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
     const messageHash = ethers.utils.solidityKeccak256(
       ["address", "string"],
-      [address, ticket]
+      [targetAddress, ticket]
     );
     const messageHashBinary = ethers.utils.arrayify(messageHash);
     const signature = await wallet.signMessage(messageHashBinary);

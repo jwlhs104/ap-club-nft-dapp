@@ -4,6 +4,7 @@ import { MetaMaskInpageProvider } from "@metamask/providers";
 import { provider } from "web3-core";
 import Web3 from "web3";
 import axios from "axios";
+import { utils } from "ethers";
 
 const stages = ["Whitelist", "Dutch Auction", "Public Sale"];
 
@@ -20,6 +21,7 @@ type DataProps = {
   maxMintAmount: number;
   totalSupply: number;
   maxSupply: number;
+  tierIndex: number;
   stageName: string;
   startTime: number;
   endTime: number;
@@ -65,7 +67,8 @@ const initialDataState = {
   maxMintAmount: 1,
   totalSupply: -1,
   maxSupply: 0,
-  stageName: "",
+  tierIndex: 0,
+  stageName: "NFT",
   startTime: 0,
   endTime: 0,
   cost: 0,
@@ -92,7 +95,7 @@ const DataContext = React.createContext<{
   fetchData?: () => Promise<void>;
   refetchData?: () => Promise<void>;
   fetchWhitelisted?: (isWhitelisted: boolean) => void;
-  fetchIsWhitelisted?: (account: string) => Promise<void>;
+  fetchIsWhitelisted?: (account: string, tierIndex: number) => Promise<void>;
   connectRequest?: () => void;
   connectSuccess?: (payload: Required<DataProps>) => void;
   connectFailed?: (errorMsg: string) => void;
@@ -122,6 +125,7 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
       if (action.payload) {
         const {
           stageName,
+          tierIndex,
           currentSaleIndex,
           maxMintAmount,
           startTime,
@@ -135,6 +139,7 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
         if (
           typeof currentSaleIndex !== "undefined" &&
           typeof totalSupply !== "undefined" &&
+          typeof tierIndex !== "undefined" &&
           typeof stage !== "undefined" &&
           stageName &&
           startTime &&
@@ -150,6 +155,8 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
             maxMintAmount,
             totalSupply,
             maxSupply,
+            tierIndex,
+            stage,
             stageName,
             startTime,
             endTime,
@@ -173,16 +180,12 @@ const dataReducer: (state: DataProps, action: DateAction) => DataProps = (
         return state;
       }
     case "START_FETCH_WHITELISTED":
-      if (action.payload?.isWhitelisted) {
-        return {
-          ...state,
-          loadingWhitelist: true,
-        };
-      } else {
-        return state;
-      }
+      return {
+        ...state,
+        loadingWhitelist: true,
+      };
     case "FETCH_WHITELISTED":
-      if (action.payload?.isWhitelisted) {
+      if (typeof action.payload?.isWhitelisted !== "undefined") {
         return {
           ...state,
           loadingWhitelist: false,
@@ -265,22 +268,31 @@ const DataContextProvider: React.FC = ({ children }) => {
     dispatch({ type: "FETCH_WHITELISTED", payload: { isWhitelisted } });
   };
 
-  const fetchIsWhitelisted = useCallback(async (account: string) => {
-    try {
-      dispatch({ type: "START_FETCH_WHITELISTED" });
+  const fetchIsWhitelisted = useCallback(
+    async (account: string, tierIndex: number) => {
+      try {
+        dispatch({ type: "START_FETCH_WHITELISTED" });
 
-      const { origin } = window;
-      const { data } = await axios.post(`${origin}/api/whitelisted`, {
-        address: account,
-      });
-      const isWhitelisted = data.isWhitelisted;
+        const { origin } = window;
+        const { data } = await axios.post(`${origin}/api/generate-ticket`, {
+          address: account,
+          tierIndex,
+        });
+        const { ticket, signature } = data;
+        const isTicketAvailable = await blockchainState?.smartContract?.methods
+          .isTicketAvailable(ticket, signature)
+          .call();
 
-      fetchWhitelisted(isWhitelisted);
-    } catch (err) {
-      console.log(err);
-      fetchDataFailed("Could not load data from contract.");
-    }
-  }, []);
+        console.log(isTicketAvailable);
+
+        fetchWhitelisted(isTicketAvailable);
+      } catch (err) {
+        console.log(err);
+        fetchDataFailed("Could not load data from contract.");
+      }
+    },
+    [blockchainState?.smartContract?.methods]
+  );
 
   const refetchData = useCallback(async () => {
     try {
@@ -330,6 +342,7 @@ const DataContextProvider: React.FC = ({ children }) => {
 
         fetchDataSuccess({
           stageName,
+          tierIndex: parseInt(saleConfig.tierIndex),
           maxSupply: parseInt(saleConfig.stageLimit),
           totalSupply: parseInt(totalSupply),
           startTime: parseInt(startTime) * 1000,
@@ -375,7 +388,9 @@ const DataContextProvider: React.FC = ({ children }) => {
       const accounts = await ethereum.request({
         method: "eth_requestAccounts",
       });
-      updateAccountRequest((accounts as string[])[0]);
+
+      const address = utils.getAddress((accounts as string[])[0]);
+      updateAccountRequest(address);
       fetchData();
     } catch (err) {
       connectFailed("Something went wrong.");

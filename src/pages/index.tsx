@@ -178,7 +178,7 @@ const MintPage: NextPage = () => {
         setClaimingNft(false);
       }
       if (blockchainState.account) {
-        fetchIsWhitelisted?.(blockchainState.account);
+        fetchIsWhitelisted?.(blockchainState.account, state.tierIndex);
         fetchData?.();
       }
       setClaimingNft(false);
@@ -212,9 +212,9 @@ const MintPage: NextPage = () => {
 
   useEffect(() => {
     if (blockchainState.account) {
-      fetchIsWhitelisted?.(blockchainState.account);
+      fetchIsWhitelisted?.(blockchainState.account, state.tierIndex);
     }
-  }, [blockchainState.account, fetchIsWhitelisted]);
+  }, [blockchainState.account, fetchIsWhitelisted, state.tierIndex]);
 
   useEffect(() => {
     if (blockchainState.smartContract) {
@@ -224,6 +224,8 @@ const MintPage: NextPage = () => {
 
   const isNotInWhiteList = state.stage === 0 && !state.isWhitelisted;
   const loadingWhitelist = state.stage === 0 && state.loadingWhitelist;
+
+  console.log(loadingWhitelist, state.loadingWhitelist)
 
   const screenWidth =
     typeof window !== "undefined"
@@ -236,6 +238,7 @@ const MintPage: NextPage = () => {
 
   const [timeCountDown, setTimeCountDown] = useState(1000000);
   const [locked, setLocked] = useState(true);
+  const [ended, setEnded] = useState(false);
 
   useEffect(() => {
     let timer: number | null;
